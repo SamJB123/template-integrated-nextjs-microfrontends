@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
+  "exposeRoutes": {
+    "prefix": "docs"
+  },
   "scripts": {
     "dev": "next dev --port 3000 --turbopack",
     "build": "next build",
@@ -12,6 +15,7 @@
   },
   "dependencies": {
     "@repo/ui": "workspace:*",
+    "fast-glob": "^3.3.2",
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

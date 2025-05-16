@@ -13,6 +13,7 @@ coverage
 out/
 build
 .swc/
+apps/web/app/(feature-routes)
 
 # misc
 .DS_Store
