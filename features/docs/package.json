@@ -3,11 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
-  "exposeRoutes": {
-    "prefix": "docs"
-  },
   "scripts": {
-    "dev": "next dev --port 3000 --turbopack",
+    "dev": "next dev --port 3001 --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
@@ -18,7 +15,8 @@
     "fast-glob": "^3.3.2",
     "next": "^15.3.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "@repo/route-config": "workspace:*"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^15.3.0",

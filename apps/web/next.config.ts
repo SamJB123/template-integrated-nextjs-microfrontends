@@ -7,7 +7,15 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  transpilePackages: ['docs'],
+  transpilePackages: ['docs', 'teams', 'metrics'],
+  turbopack: {
+    // Equivalent to webpack.resolve.alias
+    resolveAlias: {
+      // Turbopack only matches exact specifiers (no prefix matching),
+      // so map the concrete reference used by feature packages:
+      '@web/app/globals.css': './app/globals.css',
+    },
+  },
 };
 
 export default nextConfig;

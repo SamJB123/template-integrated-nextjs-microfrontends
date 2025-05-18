@@ -1,10 +1,14 @@
 {
-  "name": "web",
+  "name": "@ai-colab-platform/core",
   "version": "1.0.0",
   "type": "module",
   "private": true,
+  "exports": {
+    "./globals.css": "./app/globals.css",
+    "./app/*": "./app/*"
+  },
   "scripts": {
-    "dev": "next dev --port 3001 --turbopack",
+    "dev": "next dev --port 3000 --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint --max-warnings 0",
@@ -13,6 +17,8 @@
   "dependencies": {
     "@repo/ui": "workspace:*",
     "docs": "workspace:*",
+    "teams": "workspace:*",
+    "metrics": "workspace:*",
     "next": "^15.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

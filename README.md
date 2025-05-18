@@ -48,76 +48,165 @@ For example, in [tailwind.config.ts](packages/tailwind-config/tailwind.config.ts
 
 If you choose this strategy, you can remove the `tailwindcss` and `autoprefixer` dependencies from the `ui` package.
 
-### Feature packages & App-Router integration
+### Feature Packages & App-Router Integration
 
-This repo lets **any feature package expose its own `app/` route tree** to the host app (`apps/web`) while still benefiting from the real Next.js App-Router (static params, metadata, RSC, etc.).
+This repository implements a powerful system for composing Next.js applications from multiple feature packages, allowing each package to expose its own route tree while maintaining full App Router capabilities.
 
-1. **Opt-in inside the package**
-   
-   Add an `exposeRoutes` field to the package’s `package.json`:
-   
-   ```jsonc
-   // features/blog/package.json
-   {
-     "name": "blog",
-     "exposeRoutes": { "prefix": "blog" }
-   }
-   ```
-   • `prefix` is the URL mount-point (`/blog`).  If you omit it we default to the package name.
+#### 1. Core Concepts
 
-2. **How it works under the hood**
-   
-   • At the start of **`pnpm dev`** or **`pnpm build`** the script `scripts/generate-route-stubs.ts` runs automatically (see root `package.json` scripts).  
-   • It scans every workspace package for `exposeRoutes`, finds every Next.js route file inside `<pkg>/app/**`, and writes a **stub** that re-exports the real file into
-     
-     ```
-     apps/web/app/(feature-routes)/<prefix>/<sameRelativePath>
-     ```
-   • `(feature-routes)` is a **route-group** so it does not affect the public URL.
-   • The stubs are regenerated each time and live only in `apps/web/app/(feature-routes)` (ignored by Git).
+- **Feature Packages**: Self-contained modules that expose routes and components
+- **Host Application**: The main Next.js app (`apps/web`) that composes features
+- **Route Stubs**: Auto-generated files that connect the host app to feature routes
 
-3. **Adding a new feature package**
+#### 2. Getting Started
 
-   1. Create your package with a normal `app/` folder.
-   2. Add the `exposeRoutes` key shown above.
-   3. Run `pnpm dev` – that’s it.  Visit `/blog/…` (or whatever prefix you chose) in the web app.
+##### 2.1 Create a New Feature Package
 
-4. **Things to keep in mind**
+1. Create a new directory in `features/` (e.g., `features/blog`)
+2. Add a standard Next.js `app/` directory with your routes
+3. Create a `routes.config.ts` file:
 
-   • Don’t leave legacy catch-all hand-off routes (e.g. `[[...slug]]`) at the same level – they will conflict with the generated stubs.  
-   • If two packages pick the same `prefix`, you’ll get a build-time route collision.  Choose unique prefixes.
+```typescript
+// features/blog/routes.config.ts
+import type { RoutesConfig } from '@repo/route-config';
 
-5. **Manual regeneration**
+const config: RoutesConfig = {
+  exposeRoutes: [
+    {
+      name: 'blog-root',
+      description: 'Blog landing & articles',
+      internalPath: '.',
+    },
+  ]
+};
 
-   You can run the script directly if needed:
+export default config;
+```
 
-   ```bash
-   pnpm run generate-routes
-   ```
+##### 2.2 Mount Routes in the Host App
 
-Enjoy a zero-symlink, cross-platform way to share pages between packages!
+Update the host application's `routes.config.ts` to include your feature:
 
-### Why this approach vs. common Next.js micro-frontend patterns?
+```typescript
+// apps/web/routes.config.ts
+import type { RoutesConfig } from '@repo/route-config';
 
-There are several popular ways to compose multiple teams’ Next.js codebases into one product.  Below is how this repo’s **route-stub system** compares.
+const config: RoutesConfig = {
+  mountRoutes: [
+    {
+      name: 'Blog',
+      baseRoute: '.',
+      features: {
+        'blog-root': 'blog',  // Mounts at /blog
+      },
+    },
+  ],
+};
 
-| Pattern | Pros | Cons | How our system improves |
-|---------|------|------|--------------------------|
-| **Standalone apps behind a reverse-proxy** | Truly independent deploys | No shared navigation, hydration boundary at every page, SEO duplication | We keep a *single* Next.js app so navigation is seamless and edge/static optimisation is global. |
-| **Module Federation (`@module-federation/nextjs-mf`)** | Runtime-lazy loading of remote pages | Extra bundle size, complicated webpack/RSC edge-cases, remote outages break the shell | Stubs are compiled at build-time, zero runtime indirection, works with any RSC version. |
-| **NPM packages with custom router hand-off** | Simple publish/consume | Loses static generation & metadata, type safety, route precedence | Our generator re-injects the real files so App Router regains *all* its features. |
-| **Filesystem symlinks** | Mirrors the real files | Windows/CI friction, brittle in monorepos | We generate files instead—cross-platform, rebuilds automatically. |
+export default config;
+```
 
-**Key benefits delivered by this repo’s approach**
+##### 2.3 Run the Application
 
-* **Full App-Router feature set** – static params, metadata, `revalidate`, loading/error boundaries all just work.
-* **Zero runtime penalty** – only a one-time build-time copy; no dynamic `import()` or federation chunk at runtime.
-* **Type-safe monorepo DX** – packages compile together, share TS types, ESLint/TSX know the exact component.
-* **Edge & static ready** – because pages are real files in the host tree, they can be pre-rendered or deployed to Vercel’s Edge just like any other page.
-* **Incremental adoption** – teams can add `"exposeRoutes": true` when ready; existing apps keep working.
-* **No custom router to maintain** – delete your hand-off components once stubs are generated.
+```bash
+# Start the development server
+pnpm dev
 
-> In short, you get the maintainability of monorepo packages **and** the performance & SEO of a single cohesive Next.js site, without the complexity of federation or proxy setups.
+# Or build for production
+pnpm build
+```
+
+#### 3. Advanced Usage
+
+##### 3.1 Mounting Multiple Features
+
+You can mount multiple features under different paths:
+
+```typescript
+// In routes.config.ts
+mountRoutes: [
+  {
+    name: 'TeamSpace',
+    baseRoute: 'team/[teamId]',
+    features: {
+      'docs-root': 'docs',        // Mounts at /team/[teamId]/docs
+      'analytics-root': 'stats',  // Mounts at /team/[teamId]/stats
+    },
+  },
+],
+```
+
+##### 3.2 Nested Mounting
+
+Features can mount other features:
+
+```typescript
+// features/teams/routes.config.ts
+const config: RoutesConfig = {
+  exposeRoutes: [
+    {
+      name: 'teams-root',
+      description: 'Teams dashboard',
+      internalPath: '.',
+    },
+  ],
+  mountRoutes: [
+    {
+      name: 'TeamDocs',
+      baseRoute: 'team/[teamId]/',
+      features: {
+        'docs-root': 'docs',  // Mounts at /teams/team/[teamId]/docs
+      },
+    },
+  ],
+};
+```
+
+#### 4. How It Works
+
+1. **Build-Time Generation**: The `generate-route-stubs` script runs during `dev`/`build`
+2. **Route Discovery**: Scans all packages for `routes.config.ts` files
+3. **Stub Generation**: Creates type-safe stubs in `apps/web/app/(feature-routes)`
+4. **Route Composition**: Assembles the final route tree based on mount configurations
+
+#### 5. Best Practices
+
+- Keep feature packages focused and self-contained
+- Use meaningful route names and descriptions
+- Document your feature's public API in its README
+- Test routes in isolation before mounting
+
+For detailed documentation, see [Next-React-Microfrontends.md](./Next-React-Microfrontends.md)
+
+### Architecture & Benefits
+
+#### Why This Approach?
+
+This system was designed to solve common challenges in large-scale Next.js applications:
+
+- **Team Autonomy**: Multiple teams can work on independent features
+- **Code Organization**: Clear boundaries between features
+- **Performance**: Zero-runtime overhead for route composition
+- **Developer Experience**: Type safety and hot module reloading
+
+#### Comparison with Alternatives
+
+| Pattern | Trade-offs | Our Solution |
+|---------|------------|--------------|
+| **Monolithic App** | Tight coupling, scaling challenges | ✅ Independent features with clear contracts |
+| **Micro-frontends** | Duplicate bundles, hydration issues | ✅ Single bundle, shared dependencies |
+| **Module Federation** | Complex setup, runtime overhead | ✅ Build-time composition, zero runtime cost |
+| **Package-based** | Manual route management | ✅ Automatic route generation |
+
+#### Key Features
+
+- **Type-Safe Routing**: Full TypeScript support for all routes
+- **Build-Time Composition**: No runtime overhead for route mounting
+- **Progressive Enhancement**: Start small and add features as needed
+- **Standard Next.js**: Uses built-in App Router features only
+- **Cross-Platform**: Works on all operating systems and CI environments
+
+For a detailed technical deep dive, see [Next-React-Microfrontends.md](./Next-React-Microfrontends.md)
 
 ### Utilities
 

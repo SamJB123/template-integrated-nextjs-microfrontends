@@ -27,7 +27,7 @@ This route-stub generation approach offers several advantages over common Next.j
 | **Minimal Host Glue**                 | Once a package opts in, its routes are automatically available. No manual host-side changes are needed for new routes within the package. |
 | **No Custom Router to Maintain**      | Eliminates the need for complex hand-off components or manual routing logic in the host for microfrontend integration.                    |
 | **Cross-Platform Compatibility**      | Generates files instead of relying on symlinks, ensuring robust behavior on Windows, macOS, and CI environments.                          |
-| **Incremental Adoption**              | Teams can add `"exposeRoutes": true` to their package.json when ready; existing apps and other integration methods continue to work.     |
+| **Incremental Adoption**              | Teams can add `exposeRoutes` to their `routes.config.ts` when ready; existing apps and other integration methods continue to work.     |
 
 This system aims to provide the maintainability of monorepo packages with the performance and SEO benefits of a single, cohesive Next.js site, without the complexities of module federation or reverse proxy setups.
 
@@ -52,7 +52,7 @@ monorepo/
 │       ├─ next.config.ts
 │       └─ app/
 │           └─ (feature-routes)/ ← Route group for generated stubs (doesn't affect URL)
-│               └─ docs/         ← Corresponds to "prefix" in feature package's exposeRoutes
+│               └─ docs/         ← Mount point for provider's defaultUrl (or package name)
 │                   ├─ layout.tsx              ┐
 │                   ├─ page.tsx                ├─ Generated stubs re-exporting
 │                   └─ [...slug]/              │  files from features/docs/app/...
@@ -78,7 +78,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // ... other configurations
-  transpilePackages: ['docs'], // 👈 'docs' is the name of the feature package
+  transpilePackages: ['docs'], // 'docs' is the name of the feature package
 };
 
 export default nextConfig;
@@ -120,41 +120,135 @@ export default nextConfig;
       return <p>Docs Settings Page</p>;
     }
     ```
-    For pages requiring static generation (`generateStaticParams`) or dynamic metadata (`generateMetadata`), these functions should be exported from the respective `page.tsx` or `layout.tsx` files within the feature package.
 
-2.  **Opt-in via `package.json`:**
-    Add an `exposeRoutes` field to the feature package's `package.json`.
-
-    ```jsonc
-    // features/docs/package.json
-    {
-      "name": "docs", // This is used if prefix is omitted
-      "version": "1.0.0",
-      // ... other fields
-      "exposeRoutes": {
-        "prefix": "docs" // URL mount point (e.g., /docs). Defaults to package name if omitted.
-      }
-    }
-    ```
-
-### 3.3  Automatic Route-Stub Generation
-
-A script (e.g., `scripts/generate-route-stubs.ts`) handles the creation of stub files in the host application.
-
-*   **Execution**: This script typically runs automatically at the start of `pnpm dev` or `pnpm build` (configured in the root `package.json`'s scripts). It can also be run manually (e.g., `pnpm run generate-routes`).
-*   **Functionality**:
-    *   Scans all workspace packages for the `exposeRoutes` key in their `package.json`.
-    *   For each opted-in package, it finds every Next.js route file (e.g. `page.tsx`, `layout.tsx`, `route.ts`) inside its `app/` directory.
-    *   Generates a corresponding "stub" file in the host application under `apps/web/app/(feature-routes)/<prefix>/<sameRelativePath>`.
-*   **Stub File Example**:
-    If `features/docs/app/team/[id]/page.tsx` exists, a stub will be generated at `apps/web/app/(feature-routes)/docs/team/[id]/page.tsx` with content similar to:
+2.  **Create a `routes.config.ts` file** in your feature package to expose routes:
 
     ```ts
-    // apps/web/app/(feature-routes)/docs/team/[id]/page.tsx (Auto-generated stub)
-    export * from 'docs/app/team/[id]/page'; // Re-exports named exports (e.g., generateMetadata, generateStaticParams, Server Actions)
-    export { default } from 'docs/app/team/[id]/page'; // Re-exports the default export (the page component)
+    // features/docs/routes.config.ts
+    import type { RoutesConfig } from '@repo/route-config';
+
+    const config: RoutesConfig = {
+      exposeRoutes: [
+        {
+          name: 'docs-root',        // registry key
+          description: 'Documentation root',
+          internalPath: '.',        // folder inside app/
+        },
+      ]
+    };
+
+    export default config;
     ```
-    Similarly, `features/docs/app/layout.tsx` would have a corresponding stub at `apps/web/app/(feature-routes)/docs/layout.tsx` re-exporting it.
+
+    The `exposeRoutes` array can include multiple route groups, each with:
+    - `name`: Unique identifier for this route group
+    - `description`: Human-readable description (optional)
+    - `internalPath`: Path relative to the package's `app/` directory (defaults to `.`)
+
+    For pages requiring static generation (`generateStaticParams`) or dynamic metadata (`generateMetadata`), these functions should be exported from the respective `page.tsx` or `layout.tsx` files within the feature package.
+
+### 3.3  Consuming another package’s routes
+
+A consumer package can mount routes from other packages by adding a `mountRoutes` array to its `routes.config.ts` file. Each entry specifies which routes to mount and where:
+
+```ts
+// features/teams/routes.config.ts
+import type { RoutesConfig } from '@repo/route-config';
+
+const config: RoutesConfig = {
+  exposeRoutes: [
+    {
+      name: 'teams-root',
+      description: 'Teams landing & pages',
+      internalPath: '.',
+    },
+  ],
+  mountRoutes: [
+    {
+      name: 'Docs',
+      baseRoute: 'team/[teamId]/',
+      features: {
+        'docs-root': 'docs',  // Mounts docs-root at /team/[teamId]/docs
+      },
+    },
+    {
+      name: 'Metrics',
+      baseRoute: 'team/[teamId]/',
+      features: {
+        'metrics-root': 'dashboard',  // Mounts metrics-root at /team/[teamId]/dashboard
+      },
+    },
+  ],
+};
+
+export default config;
+```
+
+Each mount group has:
+- `name`: Descriptive name for this mount group
+- `baseRoute`: Base path segment(s) where features will be mounted
+- `features`: Object mapping provider route names to URL segments
+
+The generator will create stubs so that `/team/123/docs` in the Teams app renders the Docs package's root page, and `/team/123/dashboard` renders the Metrics package's root page.
+
+### 3.4  Automatic Route-Stub Generation
+
+A script (`scripts/generate-route-stubs.ts`) handles the creation of stub files in the host application.
+
+*   **Execution**: Runs automatically during `pnpm dev` or `pnpm build` (configured in the root `package.json`). Can also be run manually with `pnpm run generate-routes`.
+*   **Debugging**: Set `ROUTE_REGISTRY_SNAPSHOT=true` in `.env.local` to generate a JSON snapshot at `apps/web/.generated/route-registry.json`.
+*   **How It Works**:
+    1. Scans all workspace packages for `routes.config.ts` files
+    2. For each package with `exposeRoutes`, finds all Next.js route files in its `app/` directory
+    3. Generates corresponding stub files in the host app under `apps/web/app/(feature-routes)/`
+    4. Processes `mountRoutes` to create nested route structures
+
+**Example Stub File**:
+For `features/docs/app/team/[id]/page.tsx`, generates:
+```ts
+// apps/web/app/(feature-routes)/docs/team/[id]/page.tsx
+export * from 'docs/app/team/[id]/page';
+export { default } from 'docs/app/team/[id]/page';
+```
+
+And for a mounted route in Teams:
+```ts
+// apps/web/app/(feature-routes)/teams/team/[teamId]/docs/page.tsx
+export * from 'docs/app/page';
+export { default } from 'docs/app/page';
+```
+
+### 3.5  Host Application Configuration
+
+The host application (typically `apps/web`) needs a `routes.config.ts` to mount feature routes:
+
+```ts
+// apps/web/routes.config.ts
+import type { RoutesConfig } from '@repo/route-config';
+
+const config: RoutesConfig = {
+  mountRoutes: [
+    {
+      name: 'Docs',
+      baseRoute: '.',
+      features: {
+        'docs-root': 'docs',  // Mounts at /docs
+      },
+    },
+    {
+      name: 'Teams',
+      baseRoute: '.',
+      features: {
+        'teams-root': 'teams',  // Mounts at /teams
+      },
+    },
+  ],
+};
+
+export default config;
+```
+
+This configuration mounts the Docs package at `/docs` and the Teams package at `/teams` in the host application.
 
 This ensures that all exports from the original feature package's route files, including page components, layouts, metadata, static generation functions, and server actions, are correctly exposed to the host Next.js application.
 

@@ -1,0 +1,13 @@
+{
+  "name": "@repo/route-config",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/route-config.d.ts"
+    }
+  },
+  "types": "./src/route-config.d.ts"
+}

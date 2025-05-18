@@ -1,0 +1,10 @@
+{
+  "extends": "./shared_config/typescript-config/base.json",
+  "compilerOptions": {
+    "baseUrl": "."
+  },
+  "include": [
+    "scripts/**/*.ts",
+    "types/**/*.ts"
+  ]
+}

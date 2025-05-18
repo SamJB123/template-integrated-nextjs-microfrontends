@@ -1,5 +1,6 @@
 {
   "name": "with-tailwind",
+  "type": "module",
   "private": true,
   "scripts": {
     "generate-routes": "tsx scripts/generate-route-stubs.ts",
@@ -7,19 +8,26 @@
     "dev": "pnpm run generate-routes && turbo run dev",
     "lint": "turbo run lint",
     "check-types": "turbo run check-types",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test": "vitest",
+    "build:schema": "tsx scripts/build-json-schema.ts"
   },
   "devDependencies": {
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "turbo": "^2.5.3",
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
+    "vitest": "^1.5.0",
+    "dotenv": "^16.4.5",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.22.4"
   },
   "packageManager": "pnpm@10.11.0",
   "engines": {
     "node": ">=18"
   },
   "dependencies": {
-    "fast-glob": "^3.3.3"
+    "fast-glob": "^3.3.3",
+    "@repo/route-config": "workspace:*"
   }
 }
