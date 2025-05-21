@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2025-05-19T04:57:52.474Z",
+  "rootLevel": {
+    "dependenciesUsed": [
+      "@repo/rootlayout-config",
+      "@repo/route-config",
+      "fast-glob",
+      "next"
+    ],
+    "devDependenciesUsed": [
+      "@repo/eslint-config",
+      "@repo/tailwind-config",
+      "@repo/typescript-config",
+      "@types/node",
+      "typescript"
+    ]
+  },
+  "subAppLevel": {
+    "dependenciesUsed": [
+      "@repo/rootlayout-config",
+      "@repo/route-config",
+      "fast-glob"
+    ],
+    "devDependenciesUsed": [
+      "@repo/eslint-config",
+      "@repo/tailwind-config",
+      "@repo/typescript-config",
+      "@types/node",
+      "typescript"
+    ],
+    "dependenciesNotUsed": [
+      "@repo/ui",
+      "zod",
+      "zod-to-json-schema"
+    ],
+    "devDependenciesNotUsed": [
+      "@next/eslint-plugin-next",
+      "@tailwindcss/postcss",
+      "@types/react",
+      "@types/react-dom",
+      "autoprefixer",
+      "eslint",
+      "postcss",
+      "tailwindcss"
+    ]
+  },
+  "collisions": {
+    "dependencies": [
+      "fast-glob"
+    ],
+    "devDependencies": [
+      "@next/eslint-plugin-next",
+      "@tailwindcss/postcss",
+      "@types/node",
+      "@types/react",
+      "@types/react-dom",
+      "autoprefixer",
+      "eslint",
+      "postcss",
+      "tailwindcss",
+      "typescript"
+    ]
+  },
+  "missing": {
+    "dependencies": [
+      "@ai-colab-platform/core"
+    ]
+  }
+}

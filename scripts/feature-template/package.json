@@ -1,0 +1,29 @@
+{
+  "name": "@ai-colab-platform/__feature_slug__",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fast-glob": "workspace:*",
+    "next": "workspace:*",
+    "react": "workspace:*",
+    "react-dom": "workspace:*"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "workspace:*",
+    "@tailwindcss/postcss": "workspace:*",
+    "@types/node": "workspace:*",
+    "autoprefixer": "workspace:*",
+    "eslint": "workspace:*",
+    "postcss": "workspace:*",
+    "tailwindcss": "workspace:*",
+    "typescript": "workspace:*"
+  }
+}

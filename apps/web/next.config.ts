@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
       // Turbopack only matches exact specifiers (no prefix matching),
       // so map the concrete reference used by feature packages:
       '@web/app/globals.css': './app/globals.css',
+      '@ai-colab-platform/core/globals.css': './app/globals.css',
     },
   },
 };

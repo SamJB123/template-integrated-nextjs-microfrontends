@@ -1,0 +1,158 @@
+{
+  "generatedAt": "2025-05-19T04:57:52.518Z",
+  "used": {
+    "dependencies": [
+      {
+        "dep": "@repo/rootlayout-config",
+        "apps": [
+          "@ai-colab-platform/core",
+          "docs"
+        ]
+      },
+      {
+        "dep": "@repo/route-config",
+        "apps": [
+          "@ai-colab-platform/core",
+          "docs",
+          "metrics",
+          "teams"
+        ]
+      },
+      {
+        "dep": "@repo/ui",
+        "apps": [
+          "@ai-colab-platform/core",
+          "docs"
+        ]
+      },
+      {
+        "dep": "docs",
+        "apps": [
+          "@ai-colab-platform/core"
+        ]
+      },
+      {
+        "dep": "fast-glob",
+        "apps": [
+          "docs"
+        ]
+      },
+      {
+        "dep": "metrics",
+        "apps": [
+          "@ai-colab-platform/core"
+        ]
+      },
+      {
+        "dep": "next",
+        "apps": [
+          "@ai-colab-platform/core",
+          "docs"
+        ]
+      },
+      {
+        "dep": "react",
+        "apps": [
+          "metrics",
+          "teams"
+        ]
+      },
+      {
+        "dep": "teams",
+        "apps": [
+          "@ai-colab-platform/core"
+        ]
+      }
+    ],
+    "devDependencies": [
+      {
+        "dep": "@repo/eslint-config",
+        "apps": [
+          "@ai-colab-platform/core",
+          "docs"
+        ]
+      },
+      {
+        "dep": "@repo/tailwind-config",
+        "apps": [
+          "@ai-colab-platform/core",
+          "docs"
+        ]
+      },
+      {
+        "dep": "@repo/typescript-config",
+        "apps": [
+          "@ai-colab-platform/core",
+          "docs"
+        ]
+      },
+      {
+        "dep": "@types/node",
+        "apps": [
+          "docs"
+        ]
+      },
+      {
+        "dep": "typescript",
+        "apps": [
+          "docs"
+        ]
+      }
+    ]
+  },
+  "unused": {
+    "dependencies": [
+      "react-dom"
+    ],
+    "devDependencies": [
+      "@next/eslint-plugin-next",
+      "@tailwindcss/postcss",
+      "@types/react",
+      "@types/react-dom",
+      "autoprefixer",
+      "depcheck",
+      "dotenv",
+      "eslint",
+      "postcss",
+      "prettier",
+      "prettier-plugin-tailwindcss",
+      "tailwindcss",
+      "tsx",
+      "turbo",
+      "vitest",
+      "zod",
+      "zod-to-json-schema"
+    ]
+  },
+  "collisions": [
+    {
+      "dep": "next",
+      "manifests": [
+        "metrics",
+        "teams"
+      ]
+    },
+    {
+      "dep": "react",
+      "manifests": [
+        "metrics",
+        "teams"
+      ]
+    },
+    {
+      "dep": "react-dom",
+      "manifests": [
+        "metrics",
+        "teams"
+      ]
+    }
+  ],
+  "missing": [
+    {
+      "dep": "@ai-colab-platform/core",
+      "apps": [
+        "docs"
+      ]
+    }
+  ]
+}

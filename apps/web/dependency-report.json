@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2025-05-19T04:57:52.337Z",
+  "rootLevel": {
+    "dependenciesUsed": [
+      "@repo/rootlayout-config",
+      "@repo/route-config",
+      "docs",
+      "metrics",
+      "next",
+      "teams"
+    ],
+    "devDependenciesUsed": [
+      "@repo/eslint-config",
+      "@repo/tailwind-config",
+      "@repo/typescript-config"
+    ]
+  },
+  "subAppLevel": {
+    "dependenciesUsed": [],
+    "devDependenciesUsed": [],
+    "dependenciesNotUsed": [],
+    "devDependenciesNotUsed": []
+  },
+  "collisions": {
+    "dependencies": [],
+    "devDependencies": []
+  },
+  "missing": {
+    "dependencies": []
+  }
+}

@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import fg from 'fast-glob';
 import fs from 'node:fs/promises';
 import routeStubConfig from '../shared_config/route-config/route-stubs.config.js';
+import { argv, env } from 'node:process';
 
 // Node ESM equivalent of __dirname
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -12,33 +13,47 @@ dotenv.config(); // load .env
 dotenv.config({ path: path.join(repoRootEnv, '.env.local'), override: true });
 
 /**
- * Generates stub route files in the host Next.js app so that the real pages
+ * Generates stub route files in the host Next.js app (or a specified target) so that the real pages
  * that live inside feature packages are picked up by the Next App Router.
  *
- * Any package.json that contains an `exposeRoutes` field will be processed.
+ * Usage:
+ *   pnpm exec tsx scripts/generate-route-stubs.ts [--hostApp apps/web]
+ *   HOST_APP=apps/web pnpm exec tsx scripts/generate-route-stubs.ts
  *
- * The script looks for an optional `prefix` field inside that object; if it is
- * missing, the package name is used. The package must contain an `app/` folder.
+ * Priority: CLI --hostApp > env.HOST_APP > config file > default 'apps/web'
  *
  * All recognised Next.js route files (page/layout/loading/error/head etc.) are
  * mirrored into:
- *   apps/web/app/(feature-routes)/<prefix>/<relativePath>
+ *   <hostApp>/app/(feature-routes)/<prefix>/<relativePath>
  * and simply re-export everything from the original source file.  Because they
  * live inside a route-group "(feature-routes)", they do not affect URL paths
- * (Next strips group names from the route).  Therefore `/docs/cats` becomes a
- * normal static route even though the implementation lives in
- * `features/docs/app/cats/page.tsx`.
+ * (Next strips group names from the route).
  */
 
 const repoRoot = path.resolve(__dirname, '..');
-const HOST_APP_REL = (routeStubConfig as any).hostApp || 'apps/web';
+function getHostAppRel(): string {
+  // 1. CLI arg --hostApp
+  const cliArg = argv.find((a) => a.startsWith('--hostApp'));
+  if (cliArg) {
+    const idx = argv.indexOf(cliArg);
+    if (cliArg.includes('=')) return cliArg.split('=')[1]!;
+    if (argv[idx + 1]) return argv[idx + 1]!;
+  }
+  // 2. Env var
+  if (env.HOST_APP) return env.HOST_APP;
+  // 3. Config file
+  if ((routeStubConfig as any).hostApp) return (routeStubConfig as any).hostApp;
+  // 4. Default
+  return 'apps/web';
+}
+const HOST_APP_REL = String(getHostAppRel() ?? 'apps/web');
 const HOST_APP_ROOT = path.join(repoRoot, HOST_APP_REL, 'app');
 const OUTPUT_GROUP = '(feature-routes)';
 const GENERATED_ROOT = path.join(repoRoot, HOST_APP_REL, 'app', OUTPUT_GROUP);
 // Path to generated d.ts that makes stub re-exports type-safe for TS
-const DECLARATION_PATH = path.join(repoRoot, 'apps', 'web', 'types', 'generated-route-modules.d.ts');
+const DECLARATION_PATH = path.join(repoRoot, HOST_APP_REL, 'types', 'generated-route-modules.d.ts');
 // Optional debug snapshot of full registry
-const SNAPSHOT_PATH = path.join(repoRoot, 'apps', 'web', '.generated', 'route-registry.json');
+const SNAPSHOT_PATH = path.join(repoRoot, HOST_APP_REL, '.generated', 'route-registry.json');
 
 // Utility: does path exist?
 async function exists(p: string): Promise<boolean> {
@@ -51,7 +66,7 @@ async function exists(p: string): Promise<boolean> {
 }
 
 import type { Options as FGOptions } from 'fast-glob';
-import type { RoutesConfig } from '@repo/route-config';
+import type { RoutesConfig } from '@shared/route-config';
 
 interface ExposeEntry {
   name: string; // registry key
@@ -241,6 +256,7 @@ async function main() {
   await fs.writeFile(DECLARATION_PATH, dts, 'utf8');
 
   // ------------------ Optional registry snapshot ------------------
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
   if (process.env.ROUTE_REGISTRY_SNAPSHOT?.toLowerCase() === 'true') {
     const registryObj: Record<string, any> = {};
     registry.forEach((v, k) => {

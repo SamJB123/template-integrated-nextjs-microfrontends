@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2025-05-19T04:57:52.517Z",
+  "rootLevel": {
+    "dependenciesUsed": [
+      "@repo/route-config",
+      "react"
+    ],
+    "devDependenciesUsed": []
+  },
+  "subAppLevel": {
+    "dependenciesUsed": [
+      "@repo/route-config",
+      "react"
+    ],
+    "devDependenciesUsed": [],
+    "dependenciesNotUsed": [
+      "next",
+      "react-dom"
+    ],
+    "devDependenciesNotUsed": []
+  },
+  "collisions": {
+    "dependencies": [
+      "next",
+      "react",
+      "react-dom"
+    ],
+    "devDependencies": []
+  },
+  "missing": {
+    "dependencies": []
+  }
+}

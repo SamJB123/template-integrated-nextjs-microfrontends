@@ -1,8 +1,6 @@
 import "@ai-colab-platform/core/globals.css";
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-
-const geist = Geist({ subsets: ["latin"] });
+import { RootLayout as SharedRoot } from "@repo/rootlayout-config";
 
 export const metadata: Metadata = {
   title: "Create Turborepo",
@@ -14,9 +12,5 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body className={geist.className}>{children}</body>
-    </html>
-  );
+  return <SharedRoot banner="DEBUG: Welcome to docs!">{children}</SharedRoot>;
 }

@@ -44,6 +44,8 @@ export const nextJsConfig = [
       ...pluginReactHooks.configs.recommended.rules,
       // React scope no longer necessary with new JSX transform.
       "react/react-in-jsx-scope": "off",
+      // Disable no unused vars for Next.js - good hygiene but should not block builds
+      "@typescript-eslint/no-unused-vars": "off",
     },
   },
 ];

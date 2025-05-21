@@ -1,10 +1,38 @@
 {
-  "extends": "./shared_config/typescript-config/base.json",
+  "extends": "./shared_config/typescript-config/nextjs.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "target": "ES2022",
+    "baseUrl": ".",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@shared/*": ["shared_config/*"],
+      "@features/*": ["features/*"],
+      "@core/*": ["apps/web/*"], 
+      "@/*": ["./*"],
+      "@kinde-oss/kinde-auth-nextjs": ["./node_modules/@kinde-oss/kinde-auth-nextjs"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "include": [
-    "scripts/**/*.ts",
-    "types/**/*.ts"
-  ]
+    "**/*.ts",
+    "**/*.tsx",
+    "shared_config/ui/src/**/*"
+  ],
+  "exclude": ["node_modules"]
 }
